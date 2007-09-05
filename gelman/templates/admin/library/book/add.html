@@ -69,7 +69,7 @@ dojo.addOnLoad(function() {
 				var firstrow = dojo.byId("firstrow");
 				dojo.forEach(items, function(item) {
 					var node = document.createElement("div");
-					node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl + '"/> <dd><p>' + item.title 
+					node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl + '" align="left"/> <dd><p>' + item.title 
 						+ '</p> <p>by ' + item.authors.join(', ') + '</p><p>Publisher: ' + item.publisher
 						+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl> </div>';
 					rows.appendChild(node);
