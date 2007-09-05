@@ -42,6 +42,25 @@ var isValidISBN = function(/* String */value) {
 dojo.addOnLoad(function() {
 	var search = dojo.byId("search");
 	var button = dojo.byId("btn_search");
+	var cache = null;
+
+	// hijack the submit
+	dojo.connect(dojo.query("#book_form input[@type=submit]")[0], 'onclick', function(e) {
+		dojo.stopEvent(e);
+		if (cache) {
+			// cache is fectched in last search
+			var i = 0;
+			var formdata = [];
+			dojo.forEach(dojo.query("#book_form input[@class=incoming]"), function(item) {
+				if (item.value != "") {
+					formdata.push(cache[i]);
+				}	
+				i++;
+			});
+			console.debug(formdata);
+		} 
+	});
+
 
 	dojo.connect(button, 'onclick', function() {
 		var value = search.value;
@@ -49,6 +68,15 @@ dojo.addOnLoad(function() {
 			// strip off the dash and space
 			value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
 		}
+		var rows = dojo.byId("books");
+		var firstrow = dojo.byId("firstrow");
+		// remove the last search result:
+		for(var c = firstrow.nextSibling; c != null;) {
+			var t = c.nextSibling;
+			rows.removeChild(c);
+			c = t;
+		}
+		
 		dojo.io.script.get({
 			url: 'http://ecs.amazonaws.com/onca/xml',
 			content: {
@@ -64,19 +92,25 @@ dojo.addOnLoad(function() {
 			},
 			callbackParamName: "CallBack",
 			}).addCallback(function(items) {
-				console.debug(items);
-				var rows = dojo.byId("books");
-				var firstrow = dojo.byId("firstrow");
+				var id = 0;
 				// hide the firstrow if we find something:
-				firstrow.style.display = "none";
-				dojo.forEach(items, function(item) {
-					var node = document.createElement("div");
-					node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl + '" align="left"/> <dd><p>' + item.title 
-						+ '</p> <p>by ' + item.authors.join(', ') + '</p><p>Publisher: ' + item.publisher
-						+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl> </div>';
-					rows.appendChild(node);
+				if (items.length) {
+					cache = items; // cache it for later use
+					firstrow.style.display = "none";
+					dojo.forEach(items, function(item) {
+						var node = document.createElement("div");
+						node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl 
+							+ '" align="left"/> <dd><p>' + item.title 
+							+ '</p> <p>by ' + item.authors.join(', ') + '</p><p>Publisher: ' + item.publisher
+							+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl> <br/>'
+							+ '<input class="incoming" type="text" id="' + id  + '"/> </div>';
+						rows.appendChild(node);
 					});
-				});
+				} else {
+					cache = null;
+					firstrow.style.display = "";
+				}
+			});
 	});
 });
 	</script>
@@ -92,8 +126,8 @@ dojo.addOnLoad(function() {
 				</div>
 				</fieldset>
 					<div class="submit-row">
-						<input type="submit" value="Save and add another" name="_addanother"  />
-						<input type="submit" value="Save and continue editing" name="_continue" />
+						<!-- <input type="submit" value="Save and add another" name="_addanother"  />
+						<input type="submit" value="Save and continue editing" name="_continue" /> -->
 						<input type="submit" value="Save" class="default" />
 					</div>
 
