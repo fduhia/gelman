@@ -6,7 +6,7 @@ from gelman.library.models import Book
 @staff_member_required
 def book_add(request):
 	if not request.POST: 
-		return render_to_response( "admin/library/book/add.html");
+		return render_to_response( "admin/library/book/add.html", {'request': request});
 
-	request.POST
+	# Handle the POST action
 
