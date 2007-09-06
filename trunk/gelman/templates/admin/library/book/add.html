@@ -115,10 +115,9 @@ dojo.addOnLoad(function() {
 				}	
 				i++;
 			});
-			console.debug(formdata);
 			dojo.xhrPost({
 				url: dojo.byId("book_form").action,
-				content: { items: formdata },
+				content: { items: dojo.toJson(formdata) },
 			}).addCallback(function(response) {
 			});
 		}
