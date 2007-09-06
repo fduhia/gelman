@@ -3,7 +3,7 @@
 {% block extrahead %}
 	<script type="text/javascript" src="/static/scripts/dojo/dojo.js"></script>
 	<script type="text/javascript">
-		dojo.require("dojo.io.script");
+dojo.require("dojo.io.script");
 
 var isValidISBN = function(/* String */value) {
     // summary: Vadlidate ISBN-10 or ISBN-13 based on the length of value
@@ -37,45 +37,31 @@ var isValidISBN = function(/* String */value) {
     } else {
         return false;
     }
-}
+};
+
+var removeRows = function() {
+	var rows = dojo.byId("books");
+	var firstrow = dojo.byId("firstrow");
+	// remove the last search result:
+	for(var c = firstrow.nextSibling; c != null;) {
+		var t = c.nextSibling;
+		rows.removeChild(c);
+		c = t;
+	}
+};
 
 dojo.addOnLoad(function() {
-	var search = dojo.byId("search");
-	var button = dojo.byId("btn_search");
 	var cache = null;
+	
 
-	// hijack the submit
-	dojo.connect(dojo.query("#book_form input[@type=submit]")[0], 'onclick', function(e) {
-		dojo.stopEvent(e);
-		if (cache) {
-			// cache is fectched in last search
-			var i = 0;
-			var formdata = [];
-			dojo.forEach(dojo.query("#book_form input[@class=incoming]"), function(item) {
-				if (item.value != "") {
-					formdata.push(cache[i]);
-				}	
-				i++;
-			});
-			console.debug(formdata);
-		} 
-	});
-
-
-	dojo.connect(button, 'onclick', function() {
-		var value = search.value;
+	// hook the search
+	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
+		var value = dojo.byId("search").value;
 		if(isValidISBN(value)) {
 			// strip off the dash and space
 			value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
 		}
-		var rows = dojo.byId("books");
-		var firstrow = dojo.byId("firstrow");
-		// remove the last search result:
-		for(var c = firstrow.nextSibling; c != null;) {
-			var t = c.nextSibling;
-			rows.removeChild(c);
-			c = t;
-		}
+		removeRows();
 		
 		dojo.io.script.get({
 			url: 'http://ecs.amazonaws.com/onca/xml',
@@ -93,6 +79,8 @@ dojo.addOnLoad(function() {
 			callbackParamName: "CallBack",
 			}).addCallback(function(items) {
 				var id = 0;
+				var rows = dojo.byId("books");
+				var firstrow = dojo.byId("firstrow");
 				// hide the firstrow if we find something:
 				if (items.length) {
 					cache = items; // cache it for later use
@@ -112,6 +100,29 @@ dojo.addOnLoad(function() {
 				}
 			});
 	});
+
+
+	// hijack the submit
+	dojo.connect(dojo.query("#book_form input[@type=submit]")[0], 'onclick', function(e) {
+		dojo.stopEvent(e);
+		if (cache) {
+			// cache is fectched in last search
+			var i = 0;
+			var formdata = [];
+			dojo.forEach(dojo.query("#book_form input[@class=incoming]"), function(item) {
+				if (item.value != "") {
+					formdata.push(cache[i]);
+				}	
+				i++;
+			});
+			console.debug(formdata);
+			dojo.xhrPost({
+				url: dojo.byId("book_form").action,
+				content: { items: formdata },
+			}).addCallback(function(response) {
+			});
+		}
+		});
 });
 	</script>
 {% endblock %}
@@ -120,7 +131,7 @@ dojo.addOnLoad(function() {
 		<h1>Add Book</h1>
 			<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
 			<input type="button" id="btn_search" value="Search" />
-			<form action="" method="post" id="book_form"> <div>
+			<form action="{{ request.path }}" method="post" id="book_form"> <div>
 				<fieldset class="module aligned ()" id="books">
 				<div class="form-row" id="firstrow"> No book found
 				</div>
