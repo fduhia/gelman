@@ -24,12 +24,12 @@ class Publisher(models.Model):
 
 
 class Book(models.Model):
-	isbn13 = models.CharField(maxlength=13, primary_key=True)
+	isbn = models.CharField(maxlength=10, primary_key=True)
 	name = models.CharField(maxlength=255)
 	authors = models.ManyToManyField(Author)
 	pages = models.IntegerField()
 	publisher = models.ForeignKey(Publisher)
-	pub_date = models.DateTimeField('data published')
+	pub_date = models.DateField('data published')
 
 	def __str__(self):
 		return self.name
