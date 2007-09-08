@@ -53,7 +53,6 @@ var removeRows = function() {
 dojo.addOnLoad(function() {
 	var cache = null;
 	
-
 	// hook the search
 	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
 		var value = dojo.byId("search").value;
@@ -119,6 +118,19 @@ dojo.addOnLoad(function() {
 				url: dojo.byId("book_form").action,
 				content: { items: dojo.toJson(formdata) },
 			}).addCallback(function(response) {
+				var result = dojo.fromJson(response);
+				var messages = dojo.query("ul[@class=messagelist]")[0]
+				dojo.forEach(result.failed, function(item) {
+					var msg = document.createElement("li");
+					msg.innerHTML = "<li><em>" + item + "</em> <strong>failed</strong> to add.</li>"
+					messages.appendChild(msg);
+				});
+				dojo.forEach(result.succeed, function(item) {
+					var msg = document.createElement("li");
+					msg.innerHTML = "<em>" + item + "</em> successfully added."
+					messages.appendChild(msg);
+				});
+				
 			});
 		}
 		});
@@ -127,6 +139,7 @@ dojo.addOnLoad(function() {
 {% endblock %}
 {% block content %}
 		<div id="content-main">
+		<ul class="messagelist"></ul>
 		<h1>Add Book</h1>
 			<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
 			<input type="button" id="btn_search" value="Search" />
