@@ -2,7 +2,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import simplejson
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from gelman.library.models import Book, Author, Publisher
 from datetime import date
 
@@ -14,6 +14,7 @@ def book_add(request):
 		return render_to_response( "admin/library/book/add.html", {'request': request});
 
 	# Handle the POST action
+	xhr = {'succeed': [], 'failed': []};
 	# Optimization?
 	for item in simplejson.loads(request.POST['items']):
 		publisher, created = Publisher.objects.get_or_create(name=item['publisher'])
@@ -21,16 +22,15 @@ def book_add(request):
 		authors = [author for (author, created) in authors];
 		y,m,d = [int(x) for x in item['pub_date'].split('-')]
 		pub_date = date(y, m, d)
-		book, created = Book.objects.get_or_create(isbn=item['isbn'], name=item['title'],
-			pages=300, pub_date=pub_date, publisher=publisher)
-		book.authors.add(*authors)
-		#print sys.exc_info()[0]
-	return HttpResponseRedirect('/admin/library/book/')
+		try :
+			book, created = Book.objects.get_or_create(isbn=item['isbn'], name=item['title'],
+				pages=300, pub_date=pub_date, publisher=publisher)
+			book.authors.add(*authors)
+		except :
+			xhr['failed'].append(item['title'])
 
+		xhr['succeed'].append(item['title'])
 
-	
-	# Insert it into the database
-	import pdb
-	pdb.set_trace()
-
+	# prepare the xhr
+	return HttpResponse(simplejson.dumps(xhr), mimetype='text/javascript');
 
