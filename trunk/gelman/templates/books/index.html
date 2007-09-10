@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+	<h1>{{ title }}</h2>
+	{% for section in section_list %}
+	<h2>{{ section.headline }}</h2>
+			<div> <dl>
+				<dt><img src="{{ section.item.thumrul }}" align="left"/></dt>
+				<dd>
+					<p>{{ section.item.name }}</p>
+					<p>by {{ section.item.authors.all|join:", "}}</p>
+					<p>Pub Date: {{ section.item.pub_date }}</p>
+				</dd>
+		</dl></div>
+	{% endfor %}
+{% endblock %}
+
