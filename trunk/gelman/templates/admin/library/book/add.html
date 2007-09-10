@@ -87,7 +87,7 @@ dojo.addOnLoad(function() {
 					dojo.forEach(items, function(item) {
 						var node = document.createElement("div");
 						node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl 
-							+ '" align="left"/> <dd><p>' + item.title 
+						+ '" align="left"/> </dt><dd><p>' + item.title 
 							+ '</p> <p>by ' + item.authors.join(', ') + '</p><p>Publisher: ' + item.publisher
 							+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl> <br/>'
 							+ '<input class="incoming" type="text" id="' + id  + '"/> </div>';
