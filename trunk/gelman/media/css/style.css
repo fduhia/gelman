@@ -1,0 +1,42 @@
+body {
+	font-size: small;
+	padding: 40px 20px;
+}
+#content {	border-top: 1px solid #ccc; }
+.section { 	margin: 15px; }
+a:link { color:#58a; text-decoration:none; }
+a:visited { color:#58a;  text-decoration:none; }
+a:hover {
+	text-decoration: none; 
+	background: #bbd0f9;
+	color:#237898;
+}
+
+h1 { color: #58a; 
+	font-size: 200%; 
+	font-family: Georgia,Serif; 
+}
+
+.section h2 {
+	margin:.25em 0 0;
+	font-size:160%;
+	font-family: "Georgia", sans-serif; 
+	font-weight: normal;
+	color: rgb(85, 136, 170);
+}
+
+/* Header 
+---------------------------------------------------------*/
+#user_info {
+	position: absolute;
+	right: 1em;
+	top: 1em;
+	font-size: .9em;
+}
+
+
+/* Brief 
+---------------------------------------------------------*/
+.brief h3 { color:#009966; font-size: 130%; }
+.brief dd { border-bottom: 1px solid #ccc; }
+
