@@ -4,11 +4,11 @@ from gelman.library.models import Book
 def index(request):
 	recently_released = {
 		'headline': "Recently Released",
-		'item':  Book.objects.latest('pub_date')
+		'items':  Book.objects.all().order_by('-pub_date')[:5]
 	}
-	return render_to_response('books/index.html',{
+	return render_to_response('library/index.html',{
 		'section_list': [recently_released], 
-		'title': 'Gelman'})
+		'title': 'Gelman | Library'})
 
 
 def detail(request, isbn):

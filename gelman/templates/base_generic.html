@@ -2,10 +2,14 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <title>Gelman{% block title %}{% endblock %}</title>
+	<title>{{ title }}</title>
+	<link rel="stylesheet" href="http://localhost:8000/static/css/style.css" type="text/css" media="screen" />
 	{% block extrahead %}{%endblock%}
 </head>
 <body>
+	<h1>{{ title }}</h1>
+	<div id="navbar">
+	</div>
 	<div id="content">
 		{% block content%}{%endblock%}
 	</div>
