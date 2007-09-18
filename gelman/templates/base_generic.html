@@ -8,6 +8,13 @@
 </head>
 <body>
 	<h1>{{ title }}</h1>
+	<div id="user_info">
+		{% if user.is_authenticated %}
+			Howdy, {{ user.username }} [<a href="/accounts/logout">Logout</a>, <a href="/accounts/profile">My Profile</a>]
+		{% else %}
+			[<a href="/accounts/login">Login</a> or <a href="/accounts/register">Register</a>]
+		{% endif %}
+	</div>
 	<div id="navbar">
 	</div>
 	<div id="content">
