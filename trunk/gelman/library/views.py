@@ -1,4 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
+from django.http import HttpResponseRedirect
+from django.contrib.auth import logout
 from gelman.library.models import Book
 
 def index(request):
@@ -8,7 +10,12 @@ def index(request):
 	}
 	return render_to_response('library/index.html',{
 		'section_list': [recently_released], 
-		'title': 'Gelman | Library'})
+		'title': 'Gelman | Library',
+		'user': request.user})
+
+def logout_view(request):
+	logout(request)
+	return HttpResponseRedirect('/library')
 
 
 def detail(request, isbn):
