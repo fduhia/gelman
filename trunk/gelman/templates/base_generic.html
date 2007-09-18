@@ -2,20 +2,37 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-	<title>{{ title }}</title>
+	<title>Gelman</title>
 	<link rel="stylesheet" href="http://localhost:8000/static/css/style.css" type="text/css" media="screen" />
 	{% block extrahead %}{%endblock%}
 </head>
 <body>
-	<h1>{{ title }}</h1>
 	<div id="user_info">
 		{% if user.is_authenticated %}
 			Howdy, {{ user.username }} [<a href="/accounts/logout">Logout</a>, <a href="/accounts/profile">My Profile</a>]
 		{% else %}
-			[<a href="/accounts/login">Login</a> or <a href="/accounts/register">Register</a>]
+			<a href="/accounts/login">Login</a> or <a href="/accounts/register">Register</a>
 		{% endif %}
 	</div>
+	<h1>Gelman</h1>
 	<div id="navbar">
+		<ul> 
+			<li><a href="/library">Libary</a></li>
+			<li><a href="/jukebox">Jukebox</a></li>
+			<li><a href="/cinema">Cinema</a></li>
+			<li><a href="/gallery">Gallery</a></li>
+		</ul>
+	</div>
+	<div id="sidebar">
+		<h2>Search</h2>
+		search me
+		<h2>Tag cloud</h2>
+			<ul>
+				<li>a</li>
+				<li>a</li>
+				<li>a</li>
+				<li>a</li>
+			</ul>
 	</div>
 	<div id="content">
 		{% block content%}{%endblock%}

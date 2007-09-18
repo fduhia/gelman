@@ -10,7 +10,6 @@ def index(request):
 	}
 	return render_to_response('library/index.html',{
 		'section_list': [recently_released], 
-		'title': 'Gelman | Library',
 		'user': request.user})
 
 def logout_view(request):
