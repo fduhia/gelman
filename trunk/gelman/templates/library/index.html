@@ -5,16 +5,7 @@
 <div class="section">
 <h2>{{ section.headline }}</h2>
 	{% for item in section.items %}
-		<div class="brief">
-			<dl>
-				<dt><img src="{{ item.thumrul }}" align="left"/></dt>
-				<dd>
-					<h3>{{ item.name }}</h3>
-					<p>by {{ item.authors.all|join:", "}}</p>
-					<p>Pub Date: {{ item.pub_date }}</p>
-				</dd>
-			</dl>
-		</div>
+		{% include "library/book_item_brief.html" %}
 	{% endfor %}
 </div>
 {% endfor %}

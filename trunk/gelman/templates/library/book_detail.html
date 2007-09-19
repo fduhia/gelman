@@ -1,0 +1,50 @@
+{% extends "base_generic.html" %}
+
+{% block extrahead %}
+	<script type="text/javascript" src="/static/scripts/dojo/dojo.js"></script>
+	<script type="text/javascript">
+dojo.require("dojo.io.script");
+dojo.addOnLoad(function() {
+	dojo.io.script.get({
+		url: 'http://ecs.amazonaws.com/onca/xml',
+		content: {
+			Service: 'AWSECommerceService',
+			SubscriptionId: '19267494ZR5A8E2CGPR2',
+			AssociateTag: 'kokogiak7-20',
+			Operation: 'ItemLookup',
+			IdType: 'ISBN',
+			SearchIndex: 'Books',
+			ResponseGroup: 'Medium',
+			ItemId: "{{item.isbn}}",
+			Style: 'http://www.kunxi.org/files/learning-django-by-example/awsreview.xsl',
+			ContentType: 'text/javascript',
+		},
+		callbackParamName: "CallBack",
+		}).addCallback(function(desc) {
+			var target = dojo.byId("desc");
+			target.innerHTML =  desc;
+		});
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="detail">
+	<dl>
+		<dt><img src="{{ item.get_cover_url}}" align="left"/></dt>
+		<dd>
+			<h2><a href="book/{{ item.isbn }}">{{ item.title }}i</a></h3>
+			<p>by {{ item.authors.all|join:", "}}</p>
+			<p>Publisher: {{ item.publisher }}</p>
+			<p>Pub Date: {{ item.pub_date }}</p>
+			<p>ISBN-10: {{ item.isbn }} </p>
+			<p>Pages: {{ item.pages }} </p>
+		</dd>
+	</dl>
+	<br clear="all"/>
+	<h2>Editorial Reviews</h2>
+	<div id="desc">
+	</div>
+</div>
+{% endblock %}
+
