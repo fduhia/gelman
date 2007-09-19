@@ -8,12 +8,14 @@ cursor = {
 urlpatterns = patterns('',
 	# static pages:
 	(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/bookstack/projects/gelman/trunk/gelman/media'}),
-	# index, login, logout
-    (r'^library/$', 'gelman.library.views.index'),
+	# login, logout
 	(r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html', }),
 	(r'^accounts/logout/$', 'gelman.library.views.logout_view', ),
 
-    (r'^library/(?P<isbn>\d+[xX]?)/$', 'gelman.library.views.detail'),
-    (r'^admin/library/book/add', 'gelman.library.admin_views.book_add'),
+    (r'^admin/library/book/add-by-search', 'gelman.library.admin_views.book_add_by_search'),
     (r'^admin/', include('django.contrib.admin.urls')),
+
+	# library
+    (r'^library/$', 'gelman.library.views.index'),
+    (r'^library/(?P<isbn>\d+[xX]?)/$', 'gelman.library.views.detail'),
 )

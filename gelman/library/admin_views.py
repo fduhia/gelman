@@ -9,9 +9,9 @@ from datetime import date
 import pdb, sys
 
 @staff_member_required
-def book_add(request):
+def book_add_by_search(request):
 	if not request.POST: 
-		return render_to_response( "admin/library/book/add.html", {'request': request});
+		return render_to_response( "admin/library/book/add-by-search.html", {'request': request});
 
 	# Handle the POST action
 	xhr = {'succeed': [], 'failed': []};
