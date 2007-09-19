@@ -8,6 +8,8 @@ cursor = {
 urlpatterns = patterns('',
 	# static pages:
 	(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/bookstack/projects/gelman/trunk/gelman/media'}),
+	(r'^repo/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/share/eBooks'}),
+
 	# login, logout
 	(r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html', }),
 	(r'^accounts/logout/$', 'gelman.library.views.logout_view', ),
