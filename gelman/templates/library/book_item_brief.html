@@ -2,7 +2,7 @@
 	<dl>
 		<dt><img src="{{ item.get_thumb_url}}" align="left"/></dt>
 		<dd>
-			<h3><a href="book/{{ item.isbn }}">{{ item.title }}i</a></h3>
+			<h3><a href="/library/book/{{ item.isbn }}">{{ item.title }}</a></h3>
 			<p>by {{ item.authors.all|join:", "}}</p>
 			<p>Publisher: {{ item.publisher }}</p>
 			<p>Pub Date: {{ item.pub_date }}</p>
