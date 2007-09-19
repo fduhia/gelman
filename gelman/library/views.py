@@ -8,8 +8,13 @@ def index(request):
 		'headline': "Recently Released",
 		'items':  Book.objects.all().order_by('-pub_date')[:5]
 	}
+	
+	recently_added = {
+		'headline': "Recently Added",
+		'items':  Book.objects.all().order_by('-timestamp')[:5]
+	}
 	return render_to_response('library/index.html',{
-		'section_list': [recently_released], 
+		'section_list': [recently_released, recently_added], 
 		'user': request.user})
 
 def logout_view(request):
@@ -17,7 +22,7 @@ def logout_view(request):
 	return HttpResponseRedirect('/library')
 
 
-def detail(request, isbn):
+def book_detail(request, isbn):
 	book = get_object_or_404(Book, isbn=isbn)
-	return render_to_response('books/detail.html', {'book': book})
+	return render_to_response('library/book_detail.html', {'item': book})
 

@@ -6,55 +6,20 @@
 <!-- | Base Template Match, General JSON Format -->
 <!-- +- -->
 	<xsl:template match="/">
-		<xsl:value-of select="aws:ItemSearchResponse/aws:OperationRequest/aws:Arguments/aws:Argument[@Name = 'CallBack']/@Value"/>
-		<xsl:text>( </xsl:text>
+		<xsl:value-of select="aws:ItemLookupResponse/aws:OperationRequest/aws:Arguments/aws:Argument[@Name = 'CallBack']/@Value"/>
 		<xsl:apply-templates/>
-		<xsl:text>)</xsl:text>
 	</xsl:template>
 	<xsl:template match="aws:RequestId"/>
 	<xsl:template match="aws:RequestProcessingTime"/>
 	<xsl:template match="aws:Items">
-		<xsl:text> [ </xsl:text>
-		<xsl:for-each select="aws:Item"> 
-			<xsl:apply-templates select="."/>
-			<xsl:text>, </xsl:text>
-		</xsl:for-each>
-		<xsl:text> ] </xsl:text>
+		<xsl:apply-templates select="aws:Item"/>
 	</xsl:template>
 	
 <!-- +- -->
 <!-- | Fetch ASIN, URL, Title, Price, Description -->
 <!-- +- -->	
 	<xsl:template match="aws:Item">
-		<xsl:text> {</xsl:text>
-		<xsl:text>"isbn":"</xsl:text><xsl:value-of select="aws:ASIN"/><xsl:text>",</xsl:text>
-		<xsl:text>"title":"</xsl:text><xsl:apply-templates select="aws:ItemAttributes/aws:Title"/><xsl:text>",</xsl:text>
-		<xsl:text>"authors": [ </xsl:text>
-			<xsl:for-each select="aws:ItemAttributes/aws:Author">
-				<xsl:text>"</xsl:text> <xsl:value-of select="."/><xsl:text>",</xsl:text>
-			</xsl:for-each>
-		<xsl:text>], </xsl:text>
-
-		<xsl:text>"publisher":"</xsl:text><xsl:value-of select="aws:ItemAttributes/aws:Manufacturer"/><xsl:text>",</xsl:text>
-		<xsl:text>"pub_date":"</xsl:text><xsl:value-of select="aws:ItemAttributes/aws:PublicationDate"/><xsl:text>",</xsl:text>
-		<xsl:text>"pages":"</xsl:text><xsl:value-of select="aws:ItemAttributes/aws:NumberOfPages"/><xsl:text>",</xsl:text>
-		<xsl:text>"url":"</xsl:text><xsl:value-of select="aws:DetailPageURL"/><xsl:text>",</xsl:text>
-		<xsl:text>"thumburl":"</xsl:text><xsl:value-of select="aws:SmallImage/aws:URL"/><xsl:text>",</xsl:text>
-		<xsl:text>"thumbdims":["</xsl:text><xsl:value-of select="aws:SmallImage/aws:Height"/><xsl:text>","</xsl:text><xsl:value-of select="aws:SmallImage/aws:Width"/><xsl:text>"],</xsl:text>
-		<xsl:text>"coverurl":"</xsl:text><xsl:value-of select="aws:MediumImage/aws:URL"/><xsl:text>",</xsl:text>
-		<!-- <xsl:text>"description":"</xsl:text><xsl:apply-templates select="aws:EditorialReviews/aws:EditorialReview/aws:Content"/><xsl:text>"</xsl:text> -->
-		<xsl:text>} </xsl:text>
-	</xsl:template>
-
-<!-- +- -->
-<!-- | Title Template, used to strip out quotation marks (which would break the javascript) -->
-<!-- +- -->	
-	<xsl:template match="aws:Title">
-		<xsl:call-template name="find-and-replace">
-			<xsl:with-param name="str" select="."/>
-			<xsl:with-param name="target">"</xsl:with-param>
-			<xsl:with-param name="replacement" select="''"/>
-		</xsl:call-template>
+		<xsl:text>("</xsl:text><xsl:apply-templates select="aws:EditorialReviews/aws:EditorialReview/aws:Content"/><xsl:text>" )</xsl:text> 
 	</xsl:template>
 
 <!-- +- -->

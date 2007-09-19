@@ -3,9 +3,10 @@ from django.shortcuts import render_to_response
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import simplejson
 from django.http import HttpResponseRedirect, HttpResponse
+from django.conf import settings
 from gelman.library.models import Book, Author, Publisher
 from datetime import date, datetime
-from urllib import urlopen, unquote
+from urllib import urlopen, unquote, urlretrieve
 from urlparse import urlparse
 from os import path
 
@@ -27,15 +28,25 @@ def book_add_by_search(request):
 		
 		try :
 			# download the image and store it to local
-			dest = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
 			pages = int(item['pages'])
 			book, created = Book.objects.get_or_create(isbn=item['isbn'], 
 				title=item['title'], timestamp=datetime.now(),
 				pages=pages, pub_date=pub_date, publisher=publisher,
 			)
-			book.authors.add(*authors)
-			book.save_thumb_file(dest, urlopen(item['thumburl']).read())
-			xhr['succeed'].append(item['title'])
+			if created:
+				thumb = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
+				cover = unquote(urlparse(item['coverurl'])[2].split('/')[-1])
+				# using hard-coded image temporary
+				print thumb, cover
+				urlretrieve(item['thumburl'], path.join(settings.MEDIA_ROOT, 'images', thumb))
+				urlretrieve(item['coverurl'], path.join(settings.MEDIA_ROOT, 'images', cover))
+
+				book.thumb = path.join('images', thumb);
+				book.cover = path.join('images', cover);
+				book.authors.add(*authors)
+				book.save()
+				print "done"
+				xhr['succeed'].append(item['title'])
 		except :
 			xhr['failed'].append(item['title'])
 
