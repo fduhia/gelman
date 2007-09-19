@@ -56,7 +56,8 @@ dojo.addOnLoad(function() {
 						node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl 
 						+ '" align="left"/> </dt><dd><p>' + item.title 
 							+ '</p> <p>by ' + item.authors.join(', ') + '</p><p>Publisher: ' + item.publisher
-							+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl> <br/>'
+							+ '</p> <p>Pages: ' + item.pages  
+							+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl>'
 							+ '<input class="incoming" type="text" id="' + id  + '"/> </div>';
 						rows.appendChild(node);
 					});
@@ -89,7 +90,7 @@ dojo.addOnLoad(function() {
 				var messages = dojo.query("ul[@class=messagelist]")[0]
 				dojo.forEach(result.failed, function(item) {
 					var msg = document.createElement("li");
-					msg.innerHTML = "<li><em>" + item + "</em> <strong>failed</strong> to add.</li>"
+					msg.innerHTML = "<em>" + item + "</em> <strong>failed</strong> to add."
 					messages.appendChild(msg);
 				});
 				dojo.forEach(result.succeed, function(item) {

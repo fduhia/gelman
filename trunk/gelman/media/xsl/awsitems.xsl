@@ -37,6 +37,7 @@
 
 		<xsl:text>"publisher":"</xsl:text><xsl:value-of select="aws:ItemAttributes/aws:Manufacturer"/><xsl:text>",</xsl:text>
 		<xsl:text>"pub_date":"</xsl:text><xsl:value-of select="aws:ItemAttributes/aws:PublicationDate"/><xsl:text>",</xsl:text>
+		<xsl:text>"pages":"</xsl:text><xsl:value-of select="aws:ItemAttributes/aws:NumberOfPages"/><xsl:text>",</xsl:text>
 		<xsl:text>"url":"</xsl:text><xsl:value-of select="aws:DetailPageURL"/><xsl:text>",</xsl:text>
 		<xsl:text>"thumburl":"</xsl:text><xsl:value-of select="aws:SmallImage/aws:URL"/><xsl:text>",</xsl:text>
 		<xsl:text>"thumbdims":["</xsl:text><xsl:value-of select="aws:SmallImage/aws:Height"/><xsl:text>","</xsl:text><xsl:value-of select="aws:SmallImage/aws:Width"/><xsl:text>"],</xsl:text>

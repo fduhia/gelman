@@ -1,4 +1,5 @@
 {% if book %}
+	<img src="{{ book.get_thumb_url }}"/>
 	<p> {{ book.name }} </p>
 	<p> {{ book.publisher.name }} </p>
 	<p> {{ book.pub_date }} </p>
