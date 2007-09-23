@@ -4,7 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import simplejson
 from django.http import HttpResponseRedirect, HttpResponse
 from django.conf import settings
-from gelman.library.models import Book, Author, Publisher
+from gelman.library.models import Book, Author, Publisher, File, FileType
 from datetime import date, datetime
 from urllib import urlopen, unquote, urlretrieve
 from urlparse import urlparse
@@ -31,6 +31,7 @@ def book_add_by_search(request):
 			title=item['title'], timestamp=datetime.now(),
 			pages=pages, pub_date=pub_date, publisher=publisher,
 		)
+		pdb.set_trace()
 		if created:
 			thumb = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
 			cover = unquote(urlparse(item['coverurl'])[2].split('/')[-1])
@@ -43,6 +44,14 @@ def book_add_by_search(request):
 			book.authors.add(*authors)
 			book.save()
 
+		# TODO : Add check whether the file is already saved, using md5sum?
+		handle = request.FILES['handle']
+		if handle:
+			ft, created = FileType.objects.get_or_create(type=FileType.parse(handle['filename']))
+			filename = book.isbn + '-' + book.title
+			file, created = File.objects.get_or_create(type=ft, meta=book)
+			file.save_handle_file(filename, handle['content'])
+			file.save()
 	except :
 		return HttpResponse("<textarea>failed.</textarea>", mimetype='text/html');
 		#return HttpResponse(simplejson.dumps(xhr), mimetype='text/javascript');
