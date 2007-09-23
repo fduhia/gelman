@@ -45,13 +45,17 @@ class Book(models.Model):
 
 class FileType(models.Model):
 	type = models.CharField(maxlength=10)
+	
 
 	def __str__(self):
 		return self.type
 
+	@staticmethod
+	def parse(filename):
+		return filename.split('.')[-1].upper()
+
 	class Admin:
 		pass
-
 
 class File(models.Model):
 	type = models.ForeignKey(FileType)
