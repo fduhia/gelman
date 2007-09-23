@@ -97,6 +97,7 @@ h1 {
 }
 .brief dt img { 
 	border: 1px solid #ccc; 
+	float: left;
 }
 .brief p { line-height: 0.8em; }
 
