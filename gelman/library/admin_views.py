@@ -17,39 +17,33 @@ def book_add_by_search(request):
 	if not request.POST: 
 		return render_to_response( "admin/library/book/add-by-search.html", {'request': request});
 
-	# Handle the POST action
-	xhr = {'succeed': [], 'failed': []};
-	for item in simplejson.loads(request.POST['items']):
-		publisher, created = Publisher.objects.get_or_create(name=item['publisher'])
-		authors = [Author.objects.get_or_create(name=au) for au in item['authors']]
-		authors = [author for (author, created) in authors];
-		y,m,d = [int(x) for x in item['pub_date'].split('-')]
-		pub_date = date(y, m, d)
-		
-		try :
-			# download the image and store it to local
-			pages = int(item['pages'])
-			book, created = Book.objects.get_or_create(isbn=item['isbn'], 
-				title=item['title'], timestamp=datetime.now(),
-				pages=pages, pub_date=pub_date, publisher=publisher,
-			)
-			if created:
-				thumb = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
-				cover = unquote(urlparse(item['coverurl'])[2].split('/')[-1])
-				# using hard-coded image temporary
-				print thumb, cover
-				urlretrieve(item['thumburl'], path.join(settings.MEDIA_ROOT, 'images', thumb))
-				urlretrieve(item['coverurl'], path.join(settings.MEDIA_ROOT, 'images', cover))
+	# Handle the meta
+	item = simplejson.loads(request.POST['meta'])
+	publisher, created = Publisher.objects.get_or_create(name=item['publisher'])
+	authors = [Author.objects.get_or_create(name=au) for au in item['authors']]
+	authors = [author for (author, created) in authors];
+	y,m,d = [int(x) for x in item['pub_date'].split('-')]
+	pub_date = date(y, m, d)
+	try :
+		# download the image and store it to local
+		pages = int(item['pages'])
+		book, created = Book.objects.get_or_create(isbn=item['isbn'], 
+			title=item['title'], timestamp=datetime.now(),
+			pages=pages, pub_date=pub_date, publisher=publisher,
+		)
+		if created:
+			thumb = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
+			cover = unquote(urlparse(item['coverurl'])[2].split('/')[-1])
+			# using hard-coded image temporary
+			urlretrieve(item['thumburl'], path.join(settings.MEDIA_ROOT, 'images', thumb))
+			urlretrieve(item['coverurl'], path.join(settings.MEDIA_ROOT, 'images', cover))
 
-				book.thumb = path.join('images', thumb);
-				book.cover = path.join('images', cover);
-				book.authors.add(*authors)
-				book.save()
-				print "done"
-				xhr['succeed'].append(item['title'])
-		except :
-			xhr['failed'].append(item['title'])
+			book.thumb = path.join('images', thumb);
+			book.cover = path.join('images', cover);
+			book.authors.add(*authors)
+			book.save()
 
-
-	# prepare the xhr
-	return HttpResponse(simplejson.dumps(xhr), mimetype='text/javascript');
+	except :
+		return HttpResponse("<textarea>failed.</textarea>", mimetype='text/html');
+		#return HttpResponse(simplejson.dumps(xhr), mimetype='text/javascript');
+	return HttpResponse("<textarea>got it</textarea>", mimetype='text/html');

@@ -1,25 +1,16 @@
 {% extends "admin/change_form.html" %}
 
 {% block extrahead %}
+	<link rel="stylesheet" href="http://localhost:8000/static/css/admin.css" type="text/css" media="screen" />
 	<script type="text/javascript" src="/static/scripts/dojo/dojo.js"></script>
 	<script type="text/javascript">
 dojo.require("dojo.io.script");
+dojo.require("dojo.io.iframe");
 dojo.require("dojox.validate.isbn");
 
-var removeRows = function() {
-	var rows = dojo.byId("books");
-	var firstrow = dojo.byId("firstrow");
-	// remove the last search result:
-	for(var c = firstrow.nextSibling; c != null;) {
-		var t = c.nextSibling;
-		rows.removeChild(c);
-		c = t;
-	}
-};
 
 dojo.addOnLoad(function() {
 	var cache = null;
-	
 	// hook the search
 	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
 		var value = dojo.byId("search").value;
@@ -27,7 +18,15 @@ dojo.addOnLoad(function() {
 			// strip off the dash and space
 			value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
 		}
-		removeRows();
+		// remove the last search
+		var rows = dojo.byId("books");
+		var firstrow = dojo.byId("firstrow");
+		// remove the last search result:
+		for(var c = firstrow.nextSibling; c != null;) {
+			var t = c.nextSibling;
+			rows.removeChild(c);
+			c = t;
+		}
 		
 		dojo.io.script.get({
 			url: 'http://ecs.amazonaws.com/onca/xml',
@@ -44,7 +43,6 @@ dojo.addOnLoad(function() {
 			},
 			callbackParamName: "CallBack",
 			}).addCallback(function(items) {
-				var id = 0;
 				var rows = dojo.byId("books");
 				var firstrow = dojo.byId("firstrow");
 				// hide the firstrow if we find something:
@@ -53,13 +51,42 @@ dojo.addOnLoad(function() {
 					firstrow.style.display = "none";
 					dojo.forEach(items, function(item) {
 						var node = document.createElement("div");
-						node.innerHTML = '<div class="form-row"> <dl> <dt><img src="' + item.thumburl 
-						+ '" align="left"/> </dt><dd><p>' + item.title 
-							+ '</p> <p>by ' + item.authors.join(', ') + '</p><p>Publisher: ' + item.publisher
-							+ '</p> <p>Pages: ' + item.pages  
-							+ '</p> <p>Pub Date: ' + item.pub_date + '</p> </dd> </dl>'
-							+ '<input class="incoming" type="text" id="' + id  + '"/> </div>';
+						node.setAttribute("class", "adminbrief");
+						node.innerHTML = '<dl><dt><img src="' + item.thumburl 
+						+ '"/></dt><dd><h3>' + item.title 
+						+ '</h3> <p>by ' + item.authors.join(', ') 
+						+ '</p><p>ISBN-10:' + item.isbn
+						+ '</p><p>Publisher: ' + item.publisher + '</p>'
+						+ '</dd> </dl>'
+						+ '<form name="' + item.isbn + '" enctype="multipart/form-data" name="book_update" action="{{request.path}}" method="post">' 
+						+ 'Attach a file: <input type="file" name="handle"/>'
+						+ '<input type="hidden" name="meta" value=""/>'
+						+ '<input type="submit" value="save"/>'
+						+ '</form>';
 						rows.appendChild(node);
+						dojo.connect(dojo.query("input[@type=submit]", node)[0], 'onclick', function(evt) {
+							dojo.stopEvent(evt);
+							var form = evt.target.parentNode;
+							for (var i=0, l=cache.length; i< l; i++) {
+								if (cache[i].isbn == form.name) {
+									break;
+								}
+							}
+							var meta = dojo.query("input[@name=meta]", form)[0];
+							meta.value = dojo.toJson(cache[i]);
+
+							// submit the form
+							dojo.io.iframe.send({
+								url: form.action,
+								method: "post",
+								handleAs: "text",
+								form: form,
+								handle: function(data, ioArgs) {
+									console.debug(data);
+								}
+							});
+						});
+
 					});
 				} else {
 					cache = null;
@@ -67,16 +94,16 @@ dojo.addOnLoad(function() {
 				}
 			});
 	});
+});
+
+/*
 
 
-	// hijack the submit
-	dojo.connect(dojo.query("#book_form input[@type=submit]")[0], 'onclick', function(e) {
-		dojo.stopEvent(e);
 		if (cache) {
 			// cache is fectched in last search
 			var i = 0;
 			var formdata = [];
-			dojo.forEach(dojo.query("#book_form input[@class=incoming]"), function(item) {
+			dojo.forEach(dojo.query("#book_form input[@type=file]"), function(item) {
 				if (item.value != "") {
 					formdata.push(cache[i]);
 				}	
@@ -100,9 +127,18 @@ dojo.addOnLoad(function() {
 				});
 				
 			});
+			dojo.io.iframe.send({
+				url: dojo.byId("book_form").action,
+				method: "post",
+				handleAs: "json",
+				form: dojo.byId("book_form"),
+			}).addCallback(function(response) {
+				var message = dojo.fromJson(response);
+			});
+
 		}
 	});
-});
+}); */
 	</script>
 {% endblock %}
 {% block content %}
@@ -111,17 +147,8 @@ dojo.addOnLoad(function() {
 		<h1>Add Book</h1>
 			<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
 			<input type="button" id="btn_search" value="Search" />
-			<form action="{{ request.path }}" method="post" id="book_form"> <div>
-				<fieldset class="module aligned ()" id="books">
-				<div class="form-row" id="firstrow"> No book found
-				</div>
-				</fieldset>
-					<div class="submit-row">
-						<!-- <input type="submit" value="Save and add another" name="_addanother"  />
-						<input type="submit" value="Save and continue editing" name="_continue" /> -->
-						<input type="submit" value="Save" class="default" />
-					</div>
-
-			</div></form>
+			<div id="books">
+				<div class="form-row" id="firstrow"> No book found. </div>
+			</div>
 		</div>
 {% endblock %}

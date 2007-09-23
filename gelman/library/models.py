@@ -1,4 +1,5 @@
 from django.db import models
+from tagging.models import Tag
 
 # NOTE: maxlength is obsolete in >0.96, replaced by max_length
 
@@ -33,6 +34,7 @@ class Book(models.Model):
 	timestamp = models.DateTimeField()
 	thumb = models.ImageField(upload_to="images")
 	cover = models.ImageField(upload_to="images")
+	tags = models.ManyToManyField(Tag)
 
 	def __str__(self):
 		return self.title
