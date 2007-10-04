@@ -28,19 +28,18 @@ def book_add_by_search(request):
 		# download the image and store it to local
 		pages = int(item['pages'])
 		book, created = Book.objects.get_or_create(isbn=item['isbn'], 
-			title=item['title'], timestamp=datetime.now(),
-			pages=pages, pub_date=pub_date, publisher=publisher,
-		)
-		pdb.set_trace()
+			title=item['title'], pages=pages, pub_date=pub_date, publisher=publisher,)
 		if created:
+			print 'created'
 			thumb = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
 			cover = unquote(urlparse(item['coverurl'])[2].split('/')[-1])
 			# using hard-coded image temporary
 			urlretrieve(item['thumburl'], path.join(settings.MEDIA_ROOT, 'images', thumb))
 			urlretrieve(item['coverurl'], path.join(settings.MEDIA_ROOT, 'images', cover))
 
-			book.thumb = path.join('images', thumb);
-			book.cover = path.join('images', cover);
+			book.thumb = path.join('images', thumb)
+			book.cover = path.join('images', cover)
+			book.timestamp = datetime.now()
 			book.authors.add(*authors)
 			book.save()
 
@@ -48,11 +47,11 @@ def book_add_by_search(request):
 		handle = request.FILES['handle']
 		if handle:
 			ft, created = FileType.objects.get_or_create(type=FileType.parse(handle['filename']))
-			filename = book.isbn + '-' + book.title
+			filename = book.isbn + '-' + book.title.replace(' ', '.') + '.' + str(ft);
 			file, created = File.objects.get_or_create(type=ft, meta=book)
 			file.save_handle_file(filename, handle['content'])
 			file.save()
 	except :
-		return HttpResponse("<textarea>failed.</textarea>", mimetype='text/html');
+		return HttpResponse("<textarea>fail</textarea>", mimetype='text/html');
 		#return HttpResponse(simplejson.dumps(xhr), mimetype='text/javascript');
-	return HttpResponse("<textarea>got it</textarea>", mimetype='text/html');
+	return HttpResponse("<textarea>succeed</textarea>", mimetype='text/html');
