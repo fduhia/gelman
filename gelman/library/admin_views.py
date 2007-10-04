@@ -24,13 +24,16 @@ def book_add_by_search(request):
 	authors = [author for (author, created) in authors];
 	y,m,d = [int(x) for x in item['pub_date'].split('-')]
 	pub_date = date(y, m, d)
+	retset = {}
+	retset['isbn'] = item['isbn']
+	retset['title'] = item['title']
+	
 	try :
 		# download the image and store it to local
 		pages = int(item['pages'])
 		book, created = Book.objects.get_or_create(isbn=item['isbn'], 
 			title=item['title'], pages=pages, pub_date=pub_date, publisher=publisher,)
 		if created:
-			print 'created'
 			thumb = unquote(urlparse(item['thumburl'])[2].split('/')[-1])
 			cover = unquote(urlparse(item['coverurl'])[2].split('/')[-1])
 			# using hard-coded image temporary
@@ -42,16 +45,20 @@ def book_add_by_search(request):
 			book.timestamp = datetime.now()
 			book.authors.add(*authors)
 			book.save()
-
 		# TODO : Add check whether the file is already saved, using md5sum?
 		handle = request.FILES['handle']
 		if handle:
 			ft, created = FileType.objects.get_or_create(type=FileType.parse(handle['filename']))
+			# TODO : hard-coded rule.
 			filename = book.isbn + '-' + book.title.replace(' ', '.') + '.' + str(ft);
 			file, created = File.objects.get_or_create(type=ft, meta=book)
-			file.save_handle_file(filename, handle['content'])
-			file.save()
+			retset['uploaded_file'] = handle['filename']
+			if created:
+				file.save_handle_file(filename, handle['content'])
+				retset['saved_file'] = filename
+				retset['status'] = 'Success'
+			else :
+				retset['status'] = 'FileAlreadyExisted'
 	except :
-		return HttpResponse("<textarea>fail</textarea>", mimetype='text/html');
-		#return HttpResponse(simplejson.dumps(xhr), mimetype='text/javascript');
-	return HttpResponse("<textarea>succeed</textarea>", mimetype='text/html');
+			retset['status'] = 'UnexpectedError'
+	return HttpResponse("<textarea>%s</textarea>" % simplejson.dumps(retset) , mimetype='text/html');

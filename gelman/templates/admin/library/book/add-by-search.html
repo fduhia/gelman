@@ -34,20 +34,30 @@ function save(isbn) {
 	dojo.io.iframe.send({
 		url: form.action,
 		method: "post",
-		handleAs: "text",
+		handleAs: "json",
 		form: form,
-		handle: function(data, ioArgs) {
-			var msgs = document.createElement("ul");
-			console.debug(data);
-			if (data == "succeed") {
-				msgs.innerHTML = '<ul class="messagelist enabled">'
-					+ '<li>Succeed to add ' + cache[i].title + '.';
-			} else {
-				msgs.innerHTML = '<ul class="errorlist enabled">'
-					+ '<li>Failed to add ' + cache[i].title + '.';
-			}
-			form.appendChild(msgs);
+	}).addCallback(function(ret) {
+		var msgs = document.createElement("ul");
+		switch(ret.status) {
+		case 'FileAlreadyExisted':
+			msgs.innerHTML = '<ul class="messagelist enabled">'
+			+ '<li>File already existed, ' + '<em>' + ret.uploaded_file  + '</em>'
+			+ ' is discarded.' + '</li>';
+			break;
+
+		case 'Success':
+			msgs.innerHTML = '<ul class="messagelist enabled">'
+			+ '<li>' + '<em>' + ret.uploaded_file  + '</em>'
+			+ ' is successfuly uploaded, and renamed to '
+			+ '<em>'+ ret.saved_file + '</em>.</li>' ;
+			break;
+
+		case 'Success':
+			msgs.innerHTML = '<ul class="errorlist enabled">'
+			+ '<li>Met an unexpected error.</li>';
+			break;
 		}
+		form.appendChild(msgs);
 	});
 };
 
