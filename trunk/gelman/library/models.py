@@ -31,7 +31,7 @@ class Book(models.Model):
 	pages = models.IntegerField()
 	publisher = models.ForeignKey(Publisher)
 	pub_date = models.DateField()
-	timestamp = models.DateTimeField()
+	timestamp = models.DateTimeField(null=True)
 	thumb = models.ImageField(upload_to="images")
 	cover = models.ImageField(upload_to="images")
 	tags = models.ManyToManyField(Tag)
@@ -48,7 +48,7 @@ class FileType(models.Model):
 	
 
 	def __str__(self):
-		return self.type
+		return self.type.lower()
 
 	@staticmethod
 	def parse(filename):

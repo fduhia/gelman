@@ -8,9 +8,51 @@ dojo.require("dojo.io.script");
 dojo.require("dojo.io.iframe");
 dojo.require("dojox.validate.isbn");
 
+var cache = null;
+
+function popup(isbn, index) {
+	dojo.query("#"+isbn+" div" ).forEach(function(item, i) {
+		if(i == index) {
+			item.setAttribute("class", "enabled");
+		} else {
+			item.setAttribute("class", "disabled");
+		}
+	});
+}
+
+function save(isbn) {
+	var form = dojo.query("#"+ isbn + " form")[0];
+	for (var i=0, l=cache.length; i< l; i++) {
+		if (cache[i].isbn == form.name) {
+			break;
+		}
+	}
+	var meta = dojo.query("input[@name=meta]", form)[0];
+	meta.value = dojo.toJson(cache[i]);
+
+	// submit the form
+	dojo.io.iframe.send({
+		url: form.action,
+		method: "post",
+		handleAs: "text",
+		form: form,
+		handle: function(data, ioArgs) {
+			var msgs = document.createElement("ul");
+			console.debug(data);
+			if (data == "succeed") {
+				msgs.innerHTML = '<ul class="messagelist enabled">'
+					+ '<li>Succeed to add ' + cache[i].title + '.';
+			} else {
+				msgs.innerHTML = '<ul class="errorlist enabled">'
+					+ '<li>Failed to add ' + cache[i].title + '.';
+			}
+			form.appendChild(msgs);
+		}
+	});
+};
+
 
 dojo.addOnLoad(function() {
-	var cache = null;
 	// hook the search
 	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
 		var value = dojo.byId("search").value;
@@ -58,35 +100,14 @@ dojo.addOnLoad(function() {
 						+ '</p><p>ISBN-10:' + item.isbn
 						+ '</p><p>Publisher: ' + item.publisher + '</p>'
 						+ '</dd> </dl>'
-						+ '<form name="' + item.isbn + '" enctype="multipart/form-data" name="book_update" action="{{request.path}}" method="post">' 
-						+ 'Attach a file: <input type="file" name="handle"/>'
-						+ '<input type="hidden" name="meta" value=""/>'
-						+ '<input type="submit" value="save"/>'
-						+ '</form>';
+						+ '<div id="' + item.isbn +'" class="actionbox">'
+						+ '<a onclick="popup(\'' + item.isbn +'\', 0)">Attach a file</a> | '
+						+ '<a onclick="save(\'' + item.isbn +'\')">Save</a>'
+						+ '<form name="' + item.isbn + '" enctype="multipart/form-data" action="{{request.path}}" method="post">' 
+						+ '<div class="disabled">Add: <input type="file" name="handle"/></div>'
+						+ '<div class="disabled"><input type="hidden" name="meta" value=""/></div>'
+						+ '</form></div>';
 						rows.appendChild(node);
-						dojo.connect(dojo.query("input[@type=submit]", node)[0], 'onclick', function(evt) {
-							dojo.stopEvent(evt);
-							var form = evt.target.parentNode;
-							for (var i=0, l=cache.length; i< l; i++) {
-								if (cache[i].isbn == form.name) {
-									break;
-								}
-							}
-							var meta = dojo.query("input[@name=meta]", form)[0];
-							meta.value = dojo.toJson(cache[i]);
-
-							// submit the form
-							dojo.io.iframe.send({
-								url: form.action,
-								method: "post",
-								handleAs: "text",
-								form: form,
-								handle: function(data, ioArgs) {
-									console.debug(data);
-								}
-							});
-						});
-
 					});
 				} else {
 					cache = null;
@@ -95,50 +116,6 @@ dojo.addOnLoad(function() {
 			});
 	});
 });
-
-/*
-
-
-		if (cache) {
-			// cache is fectched in last search
-			var i = 0;
-			var formdata = [];
-			dojo.forEach(dojo.query("#book_form input[@type=file]"), function(item) {
-				if (item.value != "") {
-					formdata.push(cache[i]);
-				}	
-				i++;
-			});
-			dojo.xhrPost({
-				url: dojo.byId("book_form").action,
-				content: { items: dojo.toJson(formdata) },
-			}).addCallback(function(response) {
-				var result = dojo.fromJson(response);
-				var messages = dojo.query("ul[@class=messagelist]")[0]
-				dojo.forEach(result.failed, function(item) {
-					var msg = document.createElement("li");
-					msg.innerHTML = "<em>" + item + "</em> <strong>failed</strong> to add."
-					messages.appendChild(msg);
-				});
-				dojo.forEach(result.succeed, function(item) {
-					var msg = document.createElement("li");
-					msg.innerHTML = "<em>" + item + "</em> successfully added."
-					messages.appendChild(msg);
-				});
-				
-			});
-			dojo.io.iframe.send({
-				url: dojo.byId("book_form").action,
-				method: "post",
-				handleAs: "json",
-				form: dojo.byId("book_form"),
-			}).addCallback(function(response) {
-				var message = dojo.fromJson(response);
-			});
-
-		}
-	});
-}); */
 	</script>
 {% endblock %}
 {% block content %}
