@@ -25,7 +25,7 @@ class Publisher(models.Model):
 
 
 class Book(models.Model):
-	isbn = models.CharField(maxlength=10, primary_key=True)
+	isbn = models.CharField(maxlength=10)
 	title = models.CharField(maxlength=255)
 	authors = models.ManyToManyField(Author)
 	pages = models.IntegerField()
