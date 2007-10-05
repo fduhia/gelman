@@ -21,8 +21,8 @@ dojo.addOnLoad(function() {
 		},
 		callbackParamName: "CallBack",
 		}).addCallback(function(desc) {
-			var target = dojo.byId("desc");
-			target.innerHTML =  desc;
+			dojo.byId("review").innerHTML =  desc;
+			dojo.byId("review-title").style.display = "";
 		});
 });
 </script>
@@ -42,8 +42,8 @@ dojo.addOnLoad(function() {
 		</dd>
 	</dl>
 	<br clear="all"/>
-	<h2>Editorial Reviews</h2>
-	<div id="desc">
+	<h2 id="review-title" style="display: none">Editorial Reviews</h2>
+	<div id="review">
 	</div>
 </div>
 {% endblock %}

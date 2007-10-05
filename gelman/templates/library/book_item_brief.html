@@ -6,6 +6,13 @@
 			<p>by {{ item.authors.all|join:", "}}</p>
 			<p>Publisher: {{ item.publisher }}</p>
 			<p>Pub Date: {{ item.pub_date }}</p>
+			{% if item.file_set.count %}
+			<p>Download: 
+				{% for file in item.file_set.all %}
+				<a href="{{file.get_handle_url}}"> {{file.type}}</a> 
+				{% endfor %}
+			</p>
+			{% endif %}
 		</dd>
 	</dl>
 </div>
