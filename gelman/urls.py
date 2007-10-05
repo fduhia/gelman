@@ -10,6 +10,7 @@ urlpatterns = patterns('',
 	(r'^accounts/logout/$', 'gelman.library.views.logout_view', ),
 	# admin
     (r'^admin/library/book/add-by-search', 'gelman.library.admin_views.book_add_by_search'),
+    (r'^admin/library/book/update-tags', 'gelman.library.admin_views.book_update_tags'),
     (r'^admin/', include('django.contrib.admin.urls')),
 
 	# library

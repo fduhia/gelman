@@ -1,9 +1,20 @@
 {% extends "base_generic.html" %}
 
 {% block extrahead %}
-	<script type="text/javascript" src="/static/scripts/dojo/dojo.js"></script>
+	<script type="text/javascript" src="/static/scripts/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 	<script type="text/javascript">
 dojo.require("dojo.io.script");
+dojo.require("dojo.parser");
+dojo.require("dijit.form.InlineEditBox");
+dojo.require("dijit.form.TextBox");
+function updateTags(value) {
+	dojo.xhrPost({
+		url: "/admin/library/book/update-tags/",
+		content: {isbn: "{{item.isbn}}", tags: value}
+		}).addCallback(function(status) {
+			console.debug(status);
+		});
+}
 dojo.addOnLoad(function() {
 	dojo.io.script.get({
 		url: 'http://ecs.amazonaws.com/onca/xml',
@@ -42,6 +53,15 @@ dojo.addOnLoad(function() {
 		</dd>
 	</dl>
 	<br clear="all"/>
+
+	Tags: <span id="editable" dojoType="dijit.form.InlineEditBox" autoSave="true" onChange="updateTags(arguments[0])">
+		<input dojoType="dijit.form.TextBox" 
+		{% if tags %} 
+			value='{{ tags|join:", "}}'
+		{% else %}
+			value='None'
+		{%endif%}/>
+	</span>
 	<h2 id="review-title" style="display: none">Editorial Reviews</h2>
 	<div id="review">
 	</div>

@@ -5,6 +5,7 @@ from django.utils import simplejson
 from django.http import HttpResponseRedirect, HttpResponse
 from django.conf import settings
 from gelman.library.models import Book, Author, Publisher, File, FileType
+from tagging.models import Tag
 from datetime import date, datetime
 from urllib import urlopen, unquote, urlretrieve
 from urlparse import urlparse
@@ -62,3 +63,10 @@ def book_add_by_search(request):
 	except :
 			retset['status'] = 'UnexpectedError'
 	return HttpResponse("<textarea>%s</textarea>" % simplejson.dumps(retset) , mimetype='text/html');
+
+def book_update_tags(request):
+	pdb.set_trace()
+	book = Book.objects.get(isbn=request['isbn'])
+	status = Tag.objects.update_tags(Book.objects.get(isbn=request['isbn']), request['tags'])
+	return HttpResponse("success");
+

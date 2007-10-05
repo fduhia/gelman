@@ -4,9 +4,10 @@
 <head>
 	<title>Gelman</title>
 	<link rel="stylesheet" href="http://localhost:8000/static/css/style.css" type="text/css" media="screen" />
+	<link rel="stylesheet" href="http://localhost:8000/static/scripts/dijit/themes/tundra/tundra.css" type="text/css"/>
 	{% block extrahead %}{%endblock%}
 </head>
-<body>
+<body class="tundra">
 	<div id="user_info">
 		{% if user.is_authenticated %}
 			Howdy, {{ user.username }} [<a href="/accounts/logout">Logout</a>, <a href="/accounts/profile">My Profile</a>]
