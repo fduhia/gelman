@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
 from gelman.library.models import Book
+from tagging.models import Tag
 
 def index(request):
 	recently_released = {
@@ -24,5 +25,7 @@ def logout_view(request):
 
 def book_detail(request, isbn):
 	book = get_object_or_404(Book, isbn=isbn)
-	return render_to_response('library/book_detail.html', {'item': book})
+	tags = Tag.objects.get_for_object(book)
+	print tags
+	return render_to_response('library/book_detail.html', {'item': book, 'tags': tags})
 
