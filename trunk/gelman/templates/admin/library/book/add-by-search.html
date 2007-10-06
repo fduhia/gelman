@@ -2,33 +2,27 @@
 
 {% block extrahead %}
 	<link rel="stylesheet" href="http://localhost:8000/static/css/admin.css" type="text/css" media="screen" />
-	<script type="text/javascript" src="/static/scripts/dojo/dojo.js"></script>
+	<style tupe="text/css">
+		@import "http://o.aolcdn.com/dojo/0.9.0/dijit/themes/tundra/tundra.css";
+	</style>
+	<script type="text/javascript" src="/static/scripts/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 	<script type="text/javascript">
+dojo.require("dojo.parser");
 dojo.require("dojo.io.script");
 dojo.require("dojo.io.iframe");
 dojo.require("dojox.validate.isbn");
+dojo.require("dijit.form.InlineEditBox");
+dojo.require("dijit.form.TextBox");
+dojo.require("dojo.dnd.source");
 
-var cache = null;
+var cache, dropbox, thumbnails;
 
-function popup(isbn, index) {
-	dojo.query("#"+isbn+" div" ).forEach(function(item, i) {
-		if(i == index) {
-			item.setAttribute("class", "enabled");
-		} else {
-			item.setAttribute("class", "disabled");
-		}
-	});
-}
-
-function save(isbn) {
-	var form = dojo.query("#"+ isbn + " form")[0];
-	for (var i=0, l=cache.length; i< l; i++) {
-		if (cache[i].isbn == form.name) {
-			break;
-		}
-	}
+function save() {
+	var form = dojo.query("form")[0];
+	// fetch meta from dnd:
 	var meta = dojo.query("input[@name=meta]", form)[0];
-	meta.value = dojo.toJson(cache[i]);
+	meta.value = dojo.toJson(
+		dropbox.getItem(dropbox.getAllNodes()[0].id).data);
 
 	// submit the form
 	dojo.io.iframe.send({
@@ -37,49 +31,77 @@ function save(isbn) {
 		handleAs: "json",
 		form: form,
 	}).addCallback(function(ret) {
-		var msgs = document.createElement("ul");
+		var msg = dojo.byId("billboard");
 		switch(ret.status) {
+		case 'Success':
+			msg.innerHTML="Success.";
+			msg.setAttribute("class", "message");
+			break;
+
 		case 'FileAlreadyExisted':
-			msgs.innerHTML = '<ul class="messagelist enabled">'
-			+ '<li>File already existed, ' + '<em>' + ret.uploaded_file  + '</em>'
-			+ ' is discarded.' + '</li>';
+			msg.innerHTML="File already existed.";
+			msg.setAttribute("class", "warning");
 			break;
 
-		case 'Success':
-			msgs.innerHTML = '<ul class="messagelist enabled">'
-			+ '<li>' + '<em>' + ret.uploaded_file  + '</em>'
-			+ ' is successfuly uploaded, and renamed to '
-			+ '<em>'+ ret.saved_file + '</em>.</li>' ;
-			break;
-
-		case 'Success':
-			msgs.innerHTML = '<ul class="errorlist enabled">'
-			+ '<li>Met an unexpected error.</li>';
+		case 'Error':
+			msg.innerHTML = "Unexpected error.";
+			msg.setAttribute("class", "error");
 			break;
 		}
-		form.appendChild(msgs);
-	});
+		console.debug(msg);
+		form.appendChild(msg);
+	}); 
 };
 
+function node_creator(item, hint) {
+	var types = ["item"];
+	var node;
+	if (hint == "avatar") {
+		node = document.createElement("img");
+		node.setAttribute("src", item.thumburl);
+	} else {
+		node = document.createElement("li");
+		dojo.addClass(node, "tablet");
+		html = '<dl><dt><img src="' + item.thumburl 
+		+ '"/></dt><dd><h3>' + item.title 
+		+ '</h3> <p>by ' + item.authors.join(', ') 
+		+ '</p><p>ISBN-10:' + item.isbn
+		+ '</p><p>Publisher: ' + item.publisher + '</p>'
+		+ '</dd> </dl>';
+		node.innerHTML = html;
+	}
+	node.id = dojo.dnd.getUniqueId();
+	return {node: node, data: item, type: types};
+}
+
+function targetnode_creator(item, hint) {
+	var types = ["item"];
+	var node = document.createElement("div");
+	dojo.addClass(node, "tablet");
+	// code debt: use += to improve performance
+	html = '<dl><dt><img src="' + item.thumburl 
+		+ '"/></dt><dd><h3>' + item.title 
+		+ '</h3> <p>by ' + item.authors.join(', ') 
+		+ '</p><p>ISBN-10:' + item.isbn
+		+ '</p><p>Publisher: ' + item.publisher + '</p>'
+		+ '</dd></dl> ';
+	node.innerHTML = html;
+	node.id = dojo.dnd.getUniqueId();
+	return {node: node, data: item, type: types};
+}
 
 dojo.addOnLoad(function() {
+	// create the dnd
+	thumbnails = new dojo.dnd.Source("thumbnails", {creator: node_creator, accept: ["item"], copyOnly: true});
+	dropbox = new dojo.dnd.Source("dropbox", {creator: targetnode_creator, accept:["item"], copyOnly: false});
+
 	// hook the search
 	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
 		var value = dojo.byId("search").value;
 		if(dojox.validate.isValidIsbn(value)) {
-			// strip off the dash and space
 			value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
 		}
-		// remove the last search
-		var rows = dojo.byId("books");
-		var firstrow = dojo.byId("firstrow");
-		// remove the last search result:
-		for(var c = firstrow.nextSibling; c != null;) {
-			var t = c.nextSibling;
-			rows.removeChild(c);
-			c = t;
-		}
-		
+	
 		dojo.io.script.get({
 			url: 'http://ecs.amazonaws.com/onca/xml',
 			content: {
@@ -94,48 +116,47 @@ dojo.addOnLoad(function() {
 				ContentType: 'text/javascript',
 			},
 			callbackParamName: "CallBack",
-			}).addCallback(function(items) {
-				var rows = dojo.byId("books");
-				var firstrow = dojo.byId("firstrow");
-				// hide the firstrow if we find something:
-				if (items.length) {
-					cache = items; // cache it for later use
-					firstrow.style.display = "none";
-					dojo.forEach(items, function(item) {
-						var node = document.createElement("div");
-						node.setAttribute("class", "adminbrief");
-						node.innerHTML = '<dl><dt><img src="' + item.thumburl 
-						+ '"/></dt><dd><h3>' + item.title 
-						+ '</h3> <p>by ' + item.authors.join(', ') 
-						+ '</p><p>ISBN-10:' + item.isbn
-						+ '</p><p>Publisher: ' + item.publisher + '</p>'
-						+ '</dd> </dl>'
-						+ '<div id="' + item.isbn +'" class="actionbox">'
-						+ '<a onclick="popup(\'' + item.isbn +'\', 0)">Attach a file</a> | '
-						+ '<a onclick="save(\'' + item.isbn +'\')">Save</a>'
-						+ '<form name="' + item.isbn + '" enctype="multipart/form-data" action="{{request.path}}" method="post">' 
-						+ '<div class="disabled">Add: <input type="file" name="handle"/></div>'
-						+ '<div class="disabled"><input type="hidden" name="meta" value=""/></div>'
-						+ '</form></div>';
-						rows.appendChild(node);
-					});
-				} else {
-					cache = null;
-					firstrow.style.display = "";
-				}
-			});
+		}).addCallback(function(items) {
+			cache = items; // cache it for later use
+			thumbnails.selectAll();
+			thumbnails.deleteSelectedNodes();
+			thumbnails.clearItems();
+			thumbnails.insertNodes(false, items);
+		});
+
 	});
+
+	dojo.subscribe("/dnd/drop", function(source, nodes, iscopy) {
+		var t = dojo.dnd.manager().target;
+		if(t == dropbox) {
+			t.selectAll();
+			t.deleteSelectedNodes();
+			t.clearItems();
+		}
+		var jsnode = source.getItem(nodes[0].id);
+		t.insertNodes(false, [jsnode.data]);
+
+	});
+
 });
 	</script>
 {% endblock %}
+
 {% block content %}
-		<div id="content-main">
-		<ul class="messagelist"></ul>
-		<h1>Add Book</h1>
-			<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
-			<input type="button" id="btn_search" value="Search" />
-			<div id="books">
-				<div class="form-row" id="firstrow"> No book found. </div>
-			</div>
-		</div>
+<h1>Add Book by Search</h1>
+<div id="content-main">
+	<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
+	<input type="button" id="btn_search" value="Search" />
+	<div id="dropbox"></div>
+	<form name="add-by-search" enctype="multipart/form-data" action="{{request.path}}" method="post">
+		<label>Attach a file: </label><input type="file" name="handle" /><br/>
+		<input type="hidden" name="meta"/>
+		Tags: <span id="tags" dojoType="dijit.form.InlineEditBox" onChange="updateTags(arguments[0])">
+			<input dojoType="dijit.form.TextBox" value="None"/>
+		</span><br/>
+		<input type="button" value="Save" onclick="save()"/>
+		<div id="billboard"></div>
+	</form>
+</div>
+<ul id="thumbnails"></ul>
 {% endblock %}
