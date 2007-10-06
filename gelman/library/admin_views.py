@@ -65,7 +65,6 @@ def book_add_by_search(request):
 	return HttpResponse("<textarea>%s</textarea>" % simplejson.dumps(retset) , mimetype='text/html');
 
 def book_update_tags(request):
-	pdb.set_trace()
 	book = Book.objects.get(isbn=request['isbn'])
 	status = Tag.objects.update_tags(Book.objects.get(isbn=request['isbn']), request['tags'])
 	return HttpResponse("success");
