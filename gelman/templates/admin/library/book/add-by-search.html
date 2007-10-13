@@ -3,7 +3,7 @@
 {% block extrahead %}
 	<link rel="stylesheet" href="http://localhost:8000/static/css/admin.css" type="text/css" media="screen" />
 	<style tupe="text/css">
-		@import "http://o.aolcdn.com/dojo/0.9.0/dijit/themes/tundra/tundra.css";
+		// @import "http://o.aolcdn.com/dojo/0.9.0/dijit/themes/tundra/tundra.css";
 	</style>
 	<script type="text/javascript" src="/static/scripts/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
 	<script type="text/javascript">
@@ -12,10 +12,11 @@ dojo.require("dojo.io.script");
 dojo.require("dojo.io.iframe");
 dojo.require("dojox.validate.isbn");
 dojo.require("dijit.form.InlineEditBox");
+dojo.require("dijit.form.CheckBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dojo.dnd.source");
 
-var cache, dropbox, thumbnails;
+var cache;
 
 function save() {
 	var form = dojo.query("form")[0];
@@ -53,49 +54,24 @@ function save() {
 	}); 
 };
 
-function node_creator(item, hint) {
-	var types = ["item"];
-	var node;
-	if (hint == "avatar") {
-		node = document.createElement("img");
-		node.setAttribute("src", item.thumburl);
-	} else {
-		node = document.createElement("li");
-		dojo.addClass(node, "tablet");
-		html = '<dl><dt><img src="' + item.thumburl 
-		+ '"/></dt><dd><h3>' + item.title 
-		+ '</h3> <p>by ' + item.authors.join(', ') 
-		+ '</p><p>ISBN-10:' + item.isbn
-		+ '</p><p>Publisher: ' + item.publisher + '</p>'
-		+ '</dd> </dl>';
+function suggestTags() {
+	var suggested = dojo.byId("suggestedtags");
+	var arr = ["linux", "java", "ruby"];
+	var tags = dojo.query("input[@name=tags]")[0];
+	dojo.forEach(arr, function(item) {
+		var node = document.createElement("li");
+		var html = "<a>"+item+"</a> "
 		node.innerHTML = html;
-	}
-	node.id = dojo.dnd.getUniqueId();
-	return {node: node, data: item, type: types};
-}
+		suggested.appendChild(node);
+		dojo.connect(node, 'onclick', node, function() {
+			tags.value += this.textContent;
+			tags.value += ", ";
+		});
+	});
+};
 
-function targetnode_creator(item, hint) {
-	var types = ["item"];
-	var node = document.createElement("div");
-	dojo.addClass(node, "tablet");
-	// code debt: use += to improve performance
-	html = '<dl><dt><img src="' + item.thumburl 
-		+ '"/></dt><dd><h3>' + item.title 
-		+ '</h3> <p>by ' + item.authors.join(', ') 
-		+ '</p><p>ISBN-10:' + item.isbn
-		+ '</p><p>Publisher: ' + item.publisher + '</p>'
-		+ '</dd></dl> ';
-	node.innerHTML = html;
-	node.id = dojo.dnd.getUniqueId();
-	return {node: node, data: item, type: types};
-}
 
 dojo.addOnLoad(function() {
-	// create the dnd
-	thumbnails = new dojo.dnd.Source("thumbnails", {creator: node_creator, accept: ["item"], copyOnly: true});
-	dropbox = new dojo.dnd.Source("dropbox", {creator: targetnode_creator, accept:["item"], copyOnly: false});
-
-	// hook the search
 	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
 		var value = dojo.byId("search").value;
 		if(dojox.validate.isValidIsbn(value)) {
@@ -118,23 +94,23 @@ dojo.addOnLoad(function() {
 			callbackParamName: "CallBack",
 		}).addCallback(function(items) {
 			cache = items; // cache it for later use
-			thumbnails.selectAll();
-			thumbnails.deleteSelectedNodes();
-			thumbnails.clearItems();
-			thumbnails.insertNodes(false, items);
+			var thumbnails = dojo.byId("thumbnails");
+			dojo.forEach(items, function(item) {
+				node = document.createElement("li");
+				dojo.addClass(node, "tablet");
+				html = '<dl><dt><img src="' + item.thumburl 
+					+ '"/></dt><dd><h3>' + item.title 
+					+ '</h3> <p>by ' + item.authors.join(', ') 
+					+ '</p><p>ISBN-10:' + item.isbn
+					+ '</p><p>Publisher: ' + item.publisher + '</p>'
+					+ '</dd> </dl>';
+				node.innerHTML = html;
+				thumbnails.appendChild(node);
+				dojo.connect(node, "onclick", node, function() {
+					dojo.addClass(this, "highlight");
+				});
+			});
 		});
-
-	});
-
-	dojo.subscribe("/dnd/drop", function(source, nodes, iscopy) {
-		var t = dojo.dnd.manager().target;
-		if(t == dropbox) {
-			t.selectAll();
-			t.deleteSelectedNodes();
-			t.clearItems();
-		}
-		var jsnode = source.getItem(nodes[0].id);
-		t.insertNodes(false, [jsnode.data]);
 
 	});
 
@@ -144,19 +120,44 @@ dojo.addOnLoad(function() {
 
 {% block content %}
 <h1>Add Book by Search</h1>
-<div id="content-main">
-	<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
-	<input type="button" id="btn_search" value="Search" />
-	<div id="dropbox"></div>
-	<form name="add-by-search" enctype="multipart/form-data" action="{{request.path}}" method="post">
-		<label>Attach a file: </label><input type="file" name="handle" /><br/>
-		<input type="hidden" name="meta"/>
-		Tags: <span id="tags" dojoType="dijit.form.InlineEditBox" onChange="updateTags(arguments[0])">
-			<input dojoType="dijit.form.TextBox" value="None"/>
-		</span><br/>
-		<input type="button" value="Save" onclick="save()"/>
-		<div id="billboard"></div>
-	</form>
+<div class="third">
+	<div class="box">
+		<h2>Step 1: Add an eBook</h2>
+		<h3>You may EITHER</h3>
+			<input dojoType="dijit.form.RadioButton" name="handletype" checked="true" value="localupload" type="radio" />Upload local eBook file: <br />
+			<input type="file" name="handle"/><br />
+		<h3>OR </h3>
+		<input disabled="true" dojoType="dijit.form.RadioButton" name="handletype" checked="false" value="remoteselect" type="radio" />Select from incoming directory(coming soon):<br />
+		<ul id="remotelist"></ul>
+	</div>
+	<div class="box">
+		<h2>Step 3: Attach tags</h2>
+		Tags:
+		<input type="text" class="vTextField" name="tags" value=""/><br />
+		<a onclick="suggestTags()">Suggest by Yahoo!:</a>
+		<ul id="suggestedtags"></ul>
+	</div>
 </div>
-<ul id="thumbnails"></ul>
+<div class="twothird box">
+	<h2>Step 2: Link with meta data</h2>
+	Search ISBN or keywords<br/>
+	<div>
+		<div class="twothird">
+			<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
+			<input type="button" id="btn_search" value="Search" />
+		</div>
+		<div class="third align-right hide">
+			Previous | Next
+		</div>
+	</div>
+	
+	<ul id="thumbnails"></ul>
+</div>
+<br clear="all">
+<div class="submit-row">
+	<input type="submit" value="Save and add another" name="_addanother"  />
+	<input type="submit" value="Save and continue editing" name="_continue" />
+	<input type="submit" value="Save" class="default" />
+</div>
+
 {% endblock %}
