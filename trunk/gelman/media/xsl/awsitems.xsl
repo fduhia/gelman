@@ -14,12 +14,14 @@
 	<xsl:template match="aws:RequestId"/>
 	<xsl:template match="aws:RequestProcessingTime"/>
 	<xsl:template match="aws:Items">
-		<xsl:text> [ </xsl:text>
+		<xsl:text> { "TotalResults": </xsl:text><xsl:value-of select="aws:TotalResults"/><xsl:text> , </xsl:text>
+		<xsl:text> "TotalPages": </xsl:text><xsl:value-of select="aws:TotalPages"/><xsl:text> , </xsl:text>
+		<xsl:text> "Items" : [ </xsl:text>
 		<xsl:for-each select="aws:Item"> 
 			<xsl:apply-templates select="."/>
 			<xsl:text>, </xsl:text>
 		</xsl:for-each>
-		<xsl:text> ] </xsl:text>
+		<xsl:text> ] }</xsl:text>
 	</xsl:template>
 	
 <!-- +- -->
