@@ -16,7 +16,22 @@ dojo.require("dijit.form.CheckBox");
 dojo.require("dijit.form.TextBox");
 dojo.require("dojo.dnd.source");
 
-var cache;
+var aws = {
+	cache: null, 
+	content: {
+		Service: 'AWSECommerceService',
+		SubscriptionId: '19267494ZR5A8E2CGPR2',
+		AssociateTag: 'kokogiak7-20',
+		Operation: 'ItemSearch',
+		SearchIndex: 'Books',
+		ResponseGroup: 'Medium,ItemAttributes,OfferFull',
+		Keywords: null,
+		Style: 'http://www.kunxi.org/files/learning-django-by-example/awsitems.xsl',
+		ContentType: 'text/javascript',
+		ItemPage: null,
+	},
+	selected: null,
+}
 
 function save() {
 	var form = dojo.query("form")[0];
@@ -70,6 +85,11 @@ function suggestTags() {
 	});
 };
 
+function clearAllChildren(el) {
+	while(el.firstChild) {
+		el.removeChild(el.firstChild);
+	}
+}
 
 dojo.addOnLoad(function() {
 	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
@@ -77,25 +97,18 @@ dojo.addOnLoad(function() {
 		if(dojox.validate.isValidIsbn(value)) {
 			value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
 		}
+		aws.content.Keywords = escape(value);
+		aws.content.ItemPage = 1;
 	
 		dojo.io.script.get({
 			url: 'http://ecs.amazonaws.com/onca/xml',
-			content: {
-				Service: 'AWSECommerceService',
-				SubscriptionId: '19267494ZR5A8E2CGPR2',
-				AssociateTag: 'kokogiak7-20',
-				Operation: 'ItemSearch',
-				SearchIndex: 'Books',
-				ResponseGroup: 'Medium,ItemAttributes,OfferFull',
-				Keywords: escape(value),
-				Style: 'http://www.kunxi.org/files/learning-django-by-example/awsitems.xsl',
-				ContentType: 'text/javascript',
-			},
+			content: aws.content,
 			callbackParamName: "CallBack",
-		}).addCallback(function(items) {
-			cache = items; // cache it for later use
+		}).addCallback(function(result) {
+			aws.cache = result.Items; // cache it for later use
 			var thumbnails = dojo.byId("thumbnails");
-			dojo.forEach(items, function(item) {
+			clearAllChildren(thumbnails);
+			dojo.forEach(aws.cache, function(item) {
 				node = document.createElement("li");
 				dojo.addClass(node, "tablet");
 				html = '<dl><dt><img src="' + item.thumburl 
@@ -107,11 +120,18 @@ dojo.addOnLoad(function() {
 				node.innerHTML = html;
 				thumbnails.appendChild(node);
 				dojo.connect(node, "onclick", node, function() {
+					if (aws.selected) {
+						dojo.removeClass(aws.selected, "highlight");
+					}
+					aws.selected = this;
 					dojo.addClass(this, "highlight");
 				});
 			});
+			if (result.TotalPages > 1) {
+				dojo.removeClass(dojo.byId("search-nav"), "hide");
+			}
+				
 		});
-
 	});
 
 });
@@ -146,7 +166,7 @@ dojo.addOnLoad(function() {
 			<input type="text" id="search" class="vTextField" name="search" size="30" value=""/>
 			<input type="button" id="btn_search" value="Search" />
 		</div>
-		<div class="third align-right hide">
+		<div id="search-nav" class="third align-right hide">
 			Previous | Next
 		</div>
 	</div>
