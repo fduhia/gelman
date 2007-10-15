@@ -91,49 +91,76 @@ function clearAllChildren(el) {
 	}
 }
 
-dojo.addOnLoad(function() {
-	dojo.connect(dojo.byId("btn_search"), 'onclick', function() {
-		var value = dojo.byId("search").value;
-		if(dojox.validate.isValidIsbn(value)) {
-			value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
-		}
-		aws.content.Keywords = escape(value);
-		aws.content.ItemPage = 1;
-	
-		dojo.io.script.get({
-			url: 'http://ecs.amazonaws.com/onca/xml',
-			content: aws.content,
-			callbackParamName: "CallBack",
-		}).addCallback(function(result) {
-			aws.cache = result.Items; // cache it for later use
-			var thumbnails = dojo.byId("thumbnails");
-			clearAllChildren(thumbnails);
-			dojo.forEach(aws.cache, function(item) {
-				node = document.createElement("li");
-				dojo.addClass(node, "tablet");
-				html = '<dl><dt><img src="' + item.thumburl 
+function _search() {
+	var value = dojo.byId("search").value;
+	if(dojox.validate.isValidIsbn(value)) {
+		value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
+	}
+	aws.content.Keywords = escape(value);
+
+	dojo.io.script.get({
+		url: 'http://ecs.amazonaws.com/onca/xml',
+		content: aws.content,
+		callbackParamName: "CallBack",
+	}).addCallback(function(result) {
+		aws.cache = result.Items; // cache it for later use
+		var thumbnails = dojo.byId("thumbnails");
+		clearAllChildren(thumbnails);
+		dojo.forEach(aws.cache, function(item) {
+			node = document.createElement("li");
+			dojo.addClass(node, "tablet");
+			html = '<dl><dt><img src="' + item.thumburl 
 					+ '"/></dt><dd><h3>' + item.title 
 					+ '</h3> <p>by ' + item.authors.join(', ') 
 					+ '</p><p>ISBN-10:' + item.isbn
 					+ '</p><p>Publisher: ' + item.publisher + '</p>'
 					+ '</dd> </dl>';
-				node.innerHTML = html;
-				thumbnails.appendChild(node);
-				dojo.connect(node, "onclick", node, function() {
-					if (aws.selected) {
-						dojo.removeClass(aws.selected, "highlight");
-					}
-					aws.selected = this;
-					dojo.addClass(this, "highlight");
-				});
+			node.innerHTML = html;
+			thumbnails.appendChild(node);
+			dojo.connect(node, "onclick", node, function() {
+				if (aws.selected) {
+					dojo.removeClass(aws.selected, "highlight");
+				}
+				aws.selected = this;
+				dojo.addClass(this, "highlight");
 			});
-			if (result.TotalPages > 1) {
-				dojo.removeClass(dojo.byId("search-nav"), "hide");
-			}
-				
 		});
-	});
+		if (result.TotalPages > 1) {
+			var nav = dojo.byId("search-nav");
+			var prev = dojo.byId("prev");
+			var next = dojo.byId("next");
 
+			dojo.removeClass(nav, "hide");
+			dojo.addClass(prev, "hide");
+			dojo.addClass(next, "hide");
+		
+			if (aws.content.ItemPage > 1) {
+				dojo.removeClass(prev, "hide");
+			} 
+			if (aws.content.ItemPage < result.TotalPages) {
+				dojo.removeClass(dojo.byId("next"), "hide");
+			}
+		}
+	});
+};
+
+function search() {
+	aws.content.ItemPage = 1;
+	_search();
+
+}
+function searchPrev() {
+	aws.content.ItemPage--; 
+	_search();
+};
+
+function searchNext() {
+	aws.content.ItemPage++; 
+	_search();
+};
+
+dojo.addOnLoad(function() {
+	dojo.connect(dojo.byId("btn_search"), 'onclick', search);
 });
 	</script>
 {% endblock %}
@@ -167,7 +194,8 @@ dojo.addOnLoad(function() {
 			<input type="button" id="btn_search" value="Search" />
 		</div>
 		<div id="search-nav" class="third align-right hide">
-			Previous | Next
+			<div id="prev" class="nav"><a onclick="searchPrev()">Previous</a></div> | 
+			<div id="next" class="nav"><a onclick="searchNext()">Next</a></div>
 		</div>
 	</div>
 	
