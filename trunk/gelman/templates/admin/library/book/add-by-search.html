@@ -159,8 +159,17 @@ function searchNext() {
 	_search();
 };
 
+
+
+
 dojo.addOnLoad(function() {
 	dojo.connect(dojo.byId("btn_search"), 'onclick', search);
+	dojo.xhrGet({
+		url: 'http://ecs.amazonaws.com/onca/xml',
+		content: {
+			dir: 'incoming'
+		}
+		}).addCallback(listdir);
 });
 	</script>
 {% endblock %}
@@ -174,7 +183,7 @@ dojo.addOnLoad(function() {
 			<input dojoType="dijit.form.RadioButton" name="handletype" checked="true" value="localupload" type="radio" />Upload local eBook file: <br />
 			<input type="file" name="handle"/><br />
 		<h3>OR </h3>
-		<input disabled="true" dojoType="dijit.form.RadioButton" name="handletype" checked="false" value="remoteselect" type="radio" />Select from incoming directory(coming soon):<br />
+		<input dojoType="dijit.form.RadioButton" name="handletype" checked="false" value="remoteselect" type="radio" />Select from incoming directory(coming soon):<br />
 		<ul id="remotelist"></ul>
 	</div>
 	<div class="box">
