@@ -1,0 +1,1 @@
+This project aims to develop a Web-based eBook management system using Django. It would be perfect for home-brew eBook library. At the same time, this project is the companion sample of "Learing Django by Example" series in kunxi.org.
